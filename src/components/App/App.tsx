@@ -21,10 +21,12 @@ function App() {
     const [modalVariant, setModalVariant] = useState<ModalVariant>(
         ModalVariant.CREATE,
     );
+
     const onClose = () => {
         setCurrentNote(null);
         setIsOpenModal(false);
     };
+
     const onOpen = (note: Note) => {
         setCurrentNote(note);
         setIsOpenModal(true);
@@ -56,44 +58,23 @@ function App() {
             toast.error("There is no data");
         }
 
-        setTags([...new Set(data?.notes.map((note) => note.tag))]);
+        const tags = data.notes.map(note => note.tag);
+        setTags(Array.from(new Set(tags)));
     }, [data]);
+
+    const totalPages = data?.totalPages ?? 0;
 
     if (error) {
         return (
-            <>
-                <div className={css.app}>
-                    <div className={`${css.container} ${css.header_container}`}>
-                        <header className={`${css.toolbar}`}>
-                            <SearchBox onSearch={onSearch} />
-                            {data && data.totalPages && (
-                                <Pagination
-                                    page={page}
-                                    setPage={setPage}
-                                    totalPages={data.totalPages}
-                                />
-                            )}
-                            <button onClick={onClickCreateBtn} className={css.button}>
-                                Create note +
-                            </button>
-                        </header>
-                    </div>
-                    <Error message={"404 Not Found"} />
-                </div>
-            </>
-        );
-    }
-    return (
-        <>
             <div className={css.app}>
                 <div className={`${css.container} ${css.header_container}`}>
-                    <header className={`${css.toolbar}`}>
+                    <header className={css.toolbar}>
                         <SearchBox onSearch={onSearch} />
-                        {data && data.totalPages > 1 && (
+                        {totalPages > 0 && (
                             <Pagination
                                 page={page}
                                 setPage={setPage}
-                                totalPages={data.totalPages}
+                                totalPages={totalPages}
                             />
                         )}
                         <button onClick={onClickCreateBtn} className={css.button}>
@@ -101,29 +82,50 @@ function App() {
                         </button>
                     </header>
                 </div>
-                {isLoading ? (
-                    <Loader />
-                ) : (
-                    data && (
-                        <NoteList
-                            setCurrentNote={onOpen}
-                            setVariant={onModalVariant}
-                            notes={data.notes}
-                        />
-                    )
-                )}
-                {isOpenModal && (
-                    <NoteModal onClose={onClose}>
-                        <NoteForm
-                            variant={modalVariant}
-                            onClose={onClose}
-                            note={currentNote}
-                            tags={tags}
-                        />
-                    </NoteModal>
-                )}
+                <Error message={"404 Not Found"} />
             </div>
-        </>
+        );
+    }
+
+    return (
+        <div className={css.app}>
+            <div className={`${css.container} ${css.header_container}`}>
+                <header className={css.toolbar}>
+                    <SearchBox onSearch={onSearch} />
+                    {totalPages > 1 && (
+                        <Pagination
+                            page={page}
+                            setPage={setPage}
+                            totalPages={totalPages}
+                        />
+                    )}
+                    <button onClick={onClickCreateBtn} className={css.button}>
+                        Create note +
+                    </button>
+                </header>
+            </div>
+            {isLoading ? (
+                <Loader />
+            ) : (
+                data && (
+                    <NoteList
+                        setCurrentNote={onOpen}
+                        setVariant={onModalVariant}
+                        notes={data.notes}
+                    />
+                )
+            )}
+            {isOpenModal && (
+                <NoteModal onClose={onClose}>
+                    <NoteForm
+                        variant={modalVariant}
+                        onClose={onClose}
+                        note={currentNote}
+                        tags={tags}
+                    />
+                </NoteModal>
+            )}
+        </div>
     );
 }
 

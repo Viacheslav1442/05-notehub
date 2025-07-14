@@ -48,6 +48,11 @@ export const deleteNote = async (id: string): Promise<Note> => {
     return data;
 };
 
+export const getById = async (id: string): Promise<Note> => {
+    const { data } = await instance.get(`/${id}`);
+    return data;
+};
+
 export const updateById = async (id: number, data: NoteUpdate): Promise<Note> => {
     const response = await instance.patch(`/${id}`, data);
     return response.data;

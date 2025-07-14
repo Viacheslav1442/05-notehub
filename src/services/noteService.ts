@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Note } from '../types/note';
+import type { Note, NoteUpdate } from '../types/note';
 
 const BASE_URL = 'https://notehub-public.goit.study/api/notes';
 const TOKEN = import.meta.env.VITE_NOTEHUB_TOKEN;
@@ -44,4 +44,9 @@ export const createNote = async (note: {
 export const deleteNote = async (id: string): Promise<Note> => {
     const { data } = await instance.delete(`/${id}`);
     return data;
+};
+
+export const updateById = async (id: number, data: NoteUpdate): Promise<Note> => {
+    const response = await axios.patch(`/notes/${id}`, data);
+    return response.data;
 };

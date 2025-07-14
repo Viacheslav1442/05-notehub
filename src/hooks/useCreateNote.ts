@@ -7,7 +7,7 @@ export const useCreateNote = () => {
     const queryClient = useQueryClient();
 
     return useMutation<Note, Error, NoteCreate>({
-        mutationFn: (data: NoteCreate) => noteService.store(data),
+        mutationFn: (data: NoteCreate) => noteService.createNote(data),
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ["notes"] });
         },

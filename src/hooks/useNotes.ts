@@ -1,11 +1,10 @@
-import { Sorting } from "../enums";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import * as noteService from '../services/noteService.ts'
+import { useQuery } from "@tanstack/react-query";
+import { fetchNotes } from "../services/noteService";
+import type { FetchNotesResponse } from "../services/noteService";
 
-export const useNotes = (page: number = 1, query?: string, sorting: Sorting = Sorting.UPDATED, limit: number = 10) => {
-    return useQuery({
-        queryKey: ['notes', { page, sorting, query, limit }],
-        queryFn: () => noteService.getAll(page, query, sorting, limit),
-        placeholderData: keepPreviousData
-    })
-}
+export const useNotes = (page: number, query: string) => {
+    return useQuery<FetchNotesResponse>({
+        queryKey: ["notes", page, query],
+        queryFn: () => fetchNotes(page, query),
+    });
+};

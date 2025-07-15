@@ -1,52 +1,62 @@
-import type {
-    Note,
-    NoteCreate,
-    NoteResponseAll,
-    NoteUpdate,
-} from "../types/note.ts";
-import { http } from "../libs/api-service.ts";
-import { routes } from "../constants";
-import { Sorting } from "../enums";
+import axios from 'axios';
+import type { Note, NoteUpdate } from '../types/note';
 
-export const getAll = async (
-    page: number = 1,
-    query?: string,
-    sorting: Sorting = Sorting.CREATED,
-    limit: number = 10,
+const BASE_URL = 'https://notehub-public.goit.study/api/notes';
+const TOKEN = import.meta.env.VITE_NOTEHUB_TOKEN;
+
+const instance = axios.create({
+    baseURL: BASE_URL,
+    headers: {
+        Authorization: `Bearer ${TOKEN}`,
+    },
+});
+
+export interface NoteResponseAll {
+    notes: Note[];
+    totalPages: number;
+}
+
+export const fetchNotes = async (
+    page: number,
+    search?: string
 ): Promise<NoteResponseAll> => {
-    const params = new URLSearchParams();
-    if (query) {
-        params.set("search", query);
+    const params: Record<string, string | number> = {
+        page,
+        perPage: 12,
+    };
+
+    if (search && search.trim()) {
+        params.search = search.trim();
     }
-    params.set("page", page.toString());
-    params.set("perPage", limit.toString());
-    params.set("sortBy", sorting);
 
-    const { data } = await http.get<NoteResponseAll>(
-        `${routes.all}?${params.toString()}`,
-    );
+    const { data } = await instance.get('', { params });
+
+    return {
+        notes: data.data,
+        totalPages: data.totalPages,
+    };
+};
+
+export const createNote = async (note: {
+    title: string;
+    content: string;
+    tag: string;
+}): Promise<Note> => {
+    const { data } = await instance.post('', note);
     return data;
 };
 
-export const getById = async (id: number): Promise<Note> => {
-    const { data } = await http.get<Note>(routes.getById(id));
+export const deleteNote = async (id: string): Promise<Note> => {
+    const { data } = await instance.delete(`/${id}`);
     return data;
 };
 
-export const store = async (note: NoteCreate): Promise<Note> => {
-    const { data } = await http.post<Note>(routes.create, note);
+export const getById = async (id: string): Promise<Note> => {
+    const { data } = await instance.get(`/${id}`);
     return data;
 };
 
-export const updateById = async (
-    id: number,
-    note: NoteUpdate,
-): Promise<Note> => {
-    const { data } = await http.patch<Note>(routes.update(id), note);
-    return data;
-};
-
-export const deleteById = async (id: number): Promise<Note> => {
-    const { data } = await http.delete<Note>(routes.delete(id));
-    return data;
+export const updateById = async (id: number, data: NoteUpdate): Promise<Note> => {
+    const response = await instance.patch(`/${id}`, data);
+    return response.data;
 };

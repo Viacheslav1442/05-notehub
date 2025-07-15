@@ -107,13 +107,11 @@ function App() {
             {isLoading ? (
                 <Loader />
             ) : (
-                data && (
-                    <NoteList
-                        setCurrentNote={onOpen}
-                        setVariant={onModalVariant}
-                        notes={data.notes}
-                    />
-                )
+                <NoteList
+                    setCurrentNote={onOpen}
+                    setVariant={onModalVariant}
+                    notes={Array.isArray(data?.notes) ? data.notes : []}
+                />
             )}
             {isOpenModal && (
                 <NoteModal onClose={onClose}>

@@ -30,6 +30,7 @@ export const fetchNotes = async (
     }
 
     const { data } = await instance.get('', { params });
+    console.log(data);
 
     return {
         notes: data.data,

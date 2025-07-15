@@ -33,7 +33,7 @@ export const fetchNotes = async (
     console.log(data);
 
     return {
-        notes: data.data,
+        notes: data.notes,
         totalPages: data.totalPages,
     };
 };

@@ -12,7 +12,7 @@ import type { Note } from "../../types/note.ts";
 import toast from "react-hot-toast";
 import { ModalVariant } from "../../enums";
 
-const DEFAULT_TAGS = ['todo', 'personal', 'work'];
+const DEFAULT_TAGS = ['Todo', 'Personal', 'Work'];
 
 function App() {
     const [page, setPage] = useState<number>(1);
@@ -48,7 +48,7 @@ function App() {
     };
 
     const { data, isLoading, error } = useNotes(page, query);
-
+    console.log(data);
     useEffect(() => {
         setPage(1);
     }, [query]);
@@ -62,7 +62,6 @@ function App() {
 
         const fetchedTags = data.notes.map(note => note.tag);
         const uniqueTags = Array.from(new Set(fetchedTags));
-        // обʼєднуємо дефолтні і отримані теги, уникаючи дублікатів
         const combinedTags = Array.from(new Set([...DEFAULT_TAGS, ...uniqueTags]));
         setTags(combinedTags);
     }, [data]);

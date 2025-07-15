@@ -52,9 +52,9 @@ function App() {
     }, [query]);
 
     useEffect(() => {
-        if (!data) return;
+        if (!data || !Array.isArray(data.notes)) return;
 
-        if (Array.isArray(data.notes) && data.notes.length === 0) {
+        if (data.notes.length === 0) {
             toast.error("There is no data");
         }
 
@@ -128,3 +128,4 @@ function App() {
 }
 
 export default App;
+

@@ -20,13 +20,16 @@ export const fetchNotes = async (
     page: number,
     search: string
 ): Promise<NoteResponseAll> => {
-    const { data } = await instance.get('', {
-        params: {
-            page,
-            perPage: 12,
-            search,
-        },
-    });
+    const params: Record<string, string | number> = {
+        page,
+        perPage: 12,
+    };
+
+    if (search.trim()) {
+        params.search = search.trim();
+    }
+
+    const { data } = await instance.get('', { params });
 
     return {
         notes: data.data,

@@ -12,12 +12,14 @@ import type { Note } from "../../types/note.ts";
 import toast from "react-hot-toast";
 import { ModalVariant } from "../../enums";
 
+const DEFAULT_TAGS = ['todo', 'personal', 'work'];
+
 function App() {
     const [page, setPage] = useState<number>(1);
     const [query, setQuery] = useState<string>("");
     const [currentNote, setCurrentNote] = useState<Note | null>(null);
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
-    const [tags, setTags] = useState<string[]>([]);
+    const [tags, setTags] = useState<string[]>(DEFAULT_TAGS);
     const [modalVariant, setModalVariant] = useState<ModalVariant>(
         ModalVariant.CREATE,
     );
@@ -58,8 +60,11 @@ function App() {
             toast.error("There is no data");
         }
 
-        const tags = data.notes.map(note => note.tag);
-        setTags(Array.from(new Set(tags)));
+        const fetchedTags = data.notes.map(note => note.tag);
+        const uniqueTags = Array.from(new Set(fetchedTags));
+        // обʼєднуємо дефолтні і отримані теги, уникаючи дублікатів
+        const combinedTags = Array.from(new Set([...DEFAULT_TAGS, ...uniqueTags]));
+        setTags(combinedTags);
     }, [data]);
 
     const totalPages = data?.totalPages ?? 0;
@@ -128,4 +133,3 @@ function App() {
 }
 
 export default App;
-

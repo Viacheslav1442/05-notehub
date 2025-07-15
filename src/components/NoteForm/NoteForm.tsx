@@ -1,11 +1,12 @@
 import css from "./NoteForm.module.css";
 import type { Note } from "../../types/note.ts";
-import { type FormikHelpers, useFormik } from "formik";
+import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useUpdateNote } from "../../hooks/useUpdateNote.ts";
 import { useCreateNote } from "../../hooks/useCreateNote.ts";
 import { ModalVariant } from "../../enums";
 import toast from "react-hot-toast";
+import { useEffect } from "react";
 
 export interface NoteFormProps {
     onClose: () => void;
@@ -25,48 +26,10 @@ interface InitialValues {
 const NoteForm = ({ onClose, note, tags, variant }: NoteFormProps) => {
     const createNote = useCreateNote();
     const updateNote = useUpdateNote();
-    const handleSubmit = (
-        values: InitialValues,
-        helpers: FormikHelpers<InitialValues>,
-    ) => {
-        switch (variant) {
-            case ModalVariant.CREATE:
-                createNote.mutate(values, {
-                    onSuccess: () => {
-                        helpers.resetForm();
-                        onClose();
-                    },
-                });
-                return;
-            case ModalVariant.UPDATE:
-                if (!note) {
-                    toast.error("Note is NULL can't update");
-                    break;
-                }
-                updateNote.mutate(
-                    { id: note.id, data: values },
-                    {
-                        onSuccess: () => {
-                            helpers.resetForm();
-                            onClose();
-                        },
-                    },
-                );
-                return;
-            default:
-                createNote.mutate(values, {
-                    onSuccess: () => {
-                        helpers.resetForm();
-                        onClose();
-                    },
-                });
-                return;
-        }
-    };
 
     const schema = Yup.object({
         title: Yup.string()
-            .min(3, "Title must be at least 2 characters")
+            .min(3, "Title must be at least 3 characters")
             .max(50, "Title must be max 50 characters")
             .required("Title is required"),
         content: Yup.string()
@@ -84,13 +47,55 @@ const NoteForm = ({ onClose, note, tags, variant }: NoteFormProps) => {
             tag: note?.tag || tags[0] || "",
         },
         validationSchema: schema,
-        onSubmit: handleSubmit,
+        onSubmit: (values, helpers) => {
+            switch (variant) {
+                case ModalVariant.CREATE:
+                    createNote.mutate(values, {
+                        onSuccess: () => {
+                            helpers.resetForm();
+                            onClose();
+                        },
+                    });
+                    break;
+                case ModalVariant.UPDATE:
+                    if (!note) {
+                        toast.error("Note is NULL, can't update");
+                        break;
+                    }
+                    updateNote.mutate(
+                        { id: note.id, data: values },
+                        {
+                            onSuccess: () => {
+                                helpers.resetForm();
+                                onClose();
+                            },
+                        },
+                    );
+                    break;
+                default:
+                    createNote.mutate(values, {
+                        onSuccess: () => {
+                            helpers.resetForm();
+                            onClose();
+                        },
+                    });
+                    break;
+            }
+        },
     });
-    const handleCheckError = (fieldName: FieldName) => {
-        if (formik.errors[fieldName]) {
-            return formik.errors[fieldName];
+
+
+    useEffect(() => {
+        if (note?.tag) {
+            formik.setFieldValue("tag", note.tag);
+        } else if (tags.length > 0) {
+            formik.setFieldValue("tag", tags[0]);
         }
-        return "";
+
+    }, [note, tags]);
+
+    const handleCheckError = (fieldName: FieldName) => {
+        return formik.errors[fieldName] ?? "";
     };
 
     return (
@@ -128,7 +133,7 @@ const NoteForm = ({ onClose, note, tags, variant }: NoteFormProps) => {
                     name="tag"
                     value={formik.values.tag}
                     onChange={formik.handleChange}
-                    disabled={!tags.length}
+                    disabled={tags.length === 0}
                     className={css.select}
                 >
                     {tags.map((tag) => (
@@ -141,11 +146,19 @@ const NoteForm = ({ onClose, note, tags, variant }: NoteFormProps) => {
             </div>
 
             <div className={css.actions}>
-                <button onClick={onClose} type="button" className={css.cancelButton}>
+                <button
+                    onClick={onClose}
+                    type="button"
+                    className={css.cancelButton}
+                >
                     Cancel
                 </button>
-                <button type="submit" className={css.submitButton} disabled={false}>
-                    Create note
+                <button
+                    type="submit"
+                    className={css.submitButton}
+                    disabled={false}
+                >
+                    {variant === ModalVariant.CREATE ? "Create note" : "Update note"}
                 </button>
             </div>
         </form>

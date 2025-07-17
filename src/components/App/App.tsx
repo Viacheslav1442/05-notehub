@@ -6,7 +6,7 @@ import Pagination from "../Pagination/Pagination.tsx";
 import { useNotes } from "../../hooks/useNotes.ts";
 import NoteList from "../NoteList/NoteList.tsx";
 import Loader from "../Loader/Loader.tsx";
-import Modal from "../Modal/Modal.tsx";
+import Modal from "../Modal/Modal";
 import NoteForm from "../NoteForm/NoteForm.tsx";
 import type { Note } from "../../types/note.ts";
 import toast from "react-hot-toast";
@@ -118,14 +118,14 @@ function App() {
                 />
             )}
             {isOpenModal && (
-                <NoteModal onClose={onClose}>
+                <Modal onClose={onClose}>
                     <NoteForm
                         variant={modalVariant}
                         onClose={onClose}
                         note={currentNote}
                         tags={tags}
                     />
-                </NoteModal>
+                </Modal>
             )}
         </div>
     );

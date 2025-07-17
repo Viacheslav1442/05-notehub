@@ -6,7 +6,7 @@ import Pagination from "../Pagination/Pagination.tsx";
 import { useNotes } from "../../hooks/useNotes.ts";
 import NoteList from "../NoteList/NoteList.tsx";
 import Loader from "../Loader/Loader.tsx";
-import NoteModal from "../NoteModal/NoteModal.tsx";
+import Modal from "../Modal/Modal.tsx";
 import NoteForm from "../NoteForm/NoteForm.tsx";
 import type { Note } from "../../types/note.ts";
 import toast from "react-hot-toast";
@@ -48,7 +48,7 @@ function App() {
     };
 
     const { data, isLoading, error } = useNotes(page, query);
-    console.log(data);
+
     useEffect(() => {
         setPage(1);
     }, [query]);

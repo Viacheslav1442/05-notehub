@@ -2,13 +2,13 @@ import css from './Modal.module.css'
 import { type MouseEvent, type ReactNode, useEffect } from "react";
 import { createPortal } from "react-dom";
 
-export interface NoteModalProps {
+export interface ModalProps {
     children: ReactNode;
     onClose: () => void;
 }
 
 
-const NoteModal = ({ children, onClose }: NoteModalProps) => {
+const Modal = ({ children, onClose }: ModalProps) => {
     useEffect(() => {
         const handlePressEsc = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
@@ -38,4 +38,4 @@ const NoteModal = ({ children, onClose }: NoteModalProps) => {
 };
 
 
-export default NoteModal;
+export default Modal;

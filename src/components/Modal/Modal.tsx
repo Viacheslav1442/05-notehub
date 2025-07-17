@@ -1,4 +1,4 @@
-import css from './NoteModal.module.css'
+import css from './Modal.module.css'
 import { type MouseEvent, type ReactNode, useEffect } from "react";
 import { createPortal } from "react-dom";
 

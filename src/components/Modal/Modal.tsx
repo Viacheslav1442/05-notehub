@@ -1,3 +1,5 @@
+import css from './Modal.module.css';
+
 import { useEffect, type ReactNode, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 

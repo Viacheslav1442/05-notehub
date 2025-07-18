@@ -8,7 +8,7 @@ import NoteList from "../NoteList/NoteList.tsx";
 import Loader from "../Loader/Loader.tsx";
 import NoteModal from "../Modal/Modal.tsx";
 import NoteForm from "../NoteForm/NoteForm.tsx";
-import type { Note } from "../../types/note.ts";
+import type { Note, NoteCreate, NoteUpdate } from "../../types/note.ts";
 import toast from "react-hot-toast";
 
 type Variant = "CREATE" | "UPDATE";
@@ -68,7 +68,8 @@ function App() {
         setModalVariant("CREATE");
     };
 
-    const handleSubmit = () => {
+    // Тут прибираємо параметр values, або ставимо _values щоб TS не скаржився
+    const handleSubmit = (_values: NoteCreate | NoteUpdate) => {
         onClose();
         toast.success(
             modalVariant === "CREATE"
@@ -120,26 +121,29 @@ function App() {
             {isLoading ? (
                 <Loader />
             ) : (
-                data && (
-                    <NoteList
-                        notes={data.notes}
-                        onNoteClick={(id) => {
-                            const note = data.notes.find((n) => n.id === id);
-                            if (note) handleNoteClick(note);
-                        }}
-                    />
-                )
-            )}
-            {isOpenModal && (
-                <NoteModal onClose={onClose}>
-                    <NoteForm
-                        variant={modalVariant}
-                        onClose={onClose}
-                        note={currentNote}
-                        tags={tags}
-                        onSubmit={handleSubmit}
-                    />
-                </NoteModal>
+                <>
+                    {data && (
+                        <NoteList
+                            notes={data.notes}
+                            onNoteClick={(id: number) => {
+                                const note = data.notes.find((n) => n.id === id);
+                                if (note) handleNoteClick(note);
+                            }}
+                        />
+                    )}
+
+                    {isOpenModal && (
+                        <NoteModal onClose={onClose}>
+                            <NoteForm
+                                variant={modalVariant}
+                                onClose={onClose}
+                                note={currentNote}
+                                tags={tags}
+                                onSubmit={handleSubmit}
+                            />
+                        </NoteModal>
+                    )}
+                </>
             )}
         </div>
     );

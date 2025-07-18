@@ -25,7 +25,7 @@ const NoteItem = ({ note, setCurrentNote }: NoteItemProps) => {
                 <button
                     onClick={(event: MouseEvent<HTMLButtonElement>) => {
                         event.stopPropagation();
-                        deleteNote.mutate(note.id); // Ось тут
+                        deleteNote.mutate(note.id); // Замість String(note.id)
                     }}
                     className={css.button}
                 >

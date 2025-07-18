@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import css from "./App.module.css";
-import SearchBox from "../SearchBox/SearchBox";
-import Error from "../Error/Error";
-import Pagination from "../Pagination/Pagination";
-import { useNotes } from "../../hooks/useNotes";
-import NoteList from "../NoteList/NoteList";
-import Loader from "../Loader/Loader";
-import Modal from "../Modal/Modal";
-import NoteForm from "../NoteForm/NoteForm";
-import type { Note } from "../../types/note";
+import SearchBox from "../SearchBox/SearchBox.tsx";
+import Error from "../Error/Error.tsx";
+import Pagination from "../Pagination/Pagination.tsx";
+import { useNotes } from "../../hooks/useNotes.ts";
+import NoteList from "../NoteList/NoteList.tsx";
+import Loader from "../Loader/Loader.tsx";
+import NoteModal from "../Modal/Modal.tsx";
+import NoteForm from "../NoteForm/NoteForm.tsx";
+import type { Note } from "../../types/note.ts";
 import toast from "react-hot-toast";
-import { ModalVariant } from "../../enums";
+
+type Variant = 'CREATE' | 'UPDATE';
 
 function App() {
     const [page, setPage] = useState<number>(1);
@@ -18,9 +19,28 @@ function App() {
     const [currentNote, setCurrentNote] = useState<Note | null>(null);
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
     const [tags, setTags] = useState<string[]>([]);
-    const [modalVariant, setModalVariant] = useState<ModalVariant>(
-        ModalVariant.CREATE
-    );
+    const [modalVariant, setModalVariant] = useState<Variant>('CREATE');
+
+    const onClose = () => {
+        setCurrentNote(null);
+        setIsOpenModal(false);
+    };
+
+    const handleNoteClick = (note: Note) => {
+        setCurrentNote(note);
+        setIsOpenModal(true);
+        setModalVariant('UPDATE');
+    };
+
+    const onSearch = (query: string) => {
+        setQuery(query);
+    };
+
+    const onClickCreateBtn = () => {
+        setCurrentNote(null);
+        setIsOpenModal(true);
+        setModalVariant('CREATE');
+    };
 
     const { data, isLoading, error } = useNotes({ search: query, page });
 
@@ -38,49 +58,16 @@ function App() {
         setTags([...new Set(data.notes.map((note) => note.tag))]);
     }, [data]);
 
-    const onClose = () => {
-        setCurrentNote(null);
-        setIsOpenModal(false);
-    };
-
-    const onOpen = (note: Note) => {
-        setCurrentNote(note);
-        setIsOpenModal(true);
-    };
-
-    const onSearch = (searchValue: string) => {
-        setQuery(searchValue);
-    };
-
-    const onModalVariant = (variant: ModalVariant) => {
-        setModalVariant(variant);
-    };
-
-    const onClickCreateBtn = () => {
-        setCurrentNote(null);
-        onModalVariant(ModalVariant.CREATE);
-        setIsOpenModal(true);
-    };
-
-    const handleNoteClick = (id: number) => {
-        const note = data?.notes.find((n) => n.id === id) ?? null;
-        if (note) {
-            setCurrentNote(note);
-            setIsOpenModal(true);
-            onModalVariant(ModalVariant.UPDATE);
-        }
-    };
-
     if (error) {
         return (
             <div className={css.app}>
                 <div className={`${css.container} ${css.header_container}`}>
                     <header className={`${css.toolbar}`}>
                         <SearchBox onSearch={onSearch} />
-                        {data && data.totalPages > 1 && (
+                        {data && data.totalPages && (
                             <Pagination
-                                currentPage={page}
-                                onPageChange={setPage}
+                                onPageChange={page}
+                                setPage={setPage}
                                 totalPages={data.totalPages}
                             />
                         )}
@@ -101,8 +88,8 @@ function App() {
                     <SearchBox onSearch={onSearch} />
                     {data && data.totalPages > 1 && (
                         <Pagination
-                            currentPage={page}
-                            onPageChange={setPage}
+                            onPageChange={page}
+                            setPage={setPage}
                             totalPages={data.totalPages}
                         />
                     )}
@@ -111,22 +98,28 @@ function App() {
                     </button>
                 </header>
             </div>
-
             {isLoading ? (
                 <Loader />
             ) : (
-                <NoteList notes={data?.notes ?? []} onNoteClick={handleNoteClick} />
+                data && (
+                    <NoteList
+                        notes={data.notes}
+                        onNoteClick={(id) => {
+                            const note = data.notes.find(n => n.id === id);
+                            if (note) handleNoteClick(note);
+                        }}
+                    />
+                )
             )}
-
             {isOpenModal && (
-                <Modal onClose={onClose}>
+                <NoteModal onClose={onClose}>
                     <NoteForm
                         variant={modalVariant}
                         onClose={onClose}
                         note={currentNote}
                         tags={tags}
                     />
-                </Modal>
+                </NoteModal>
             )}
         </div>
     );

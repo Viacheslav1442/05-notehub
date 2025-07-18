@@ -8,6 +8,7 @@ interface NoteFormProps {
     note?: Note | null;
     onClose: () => void;
     onSubmit: (values: NoteCreate | NoteUpdate) => void;
+    tags: string[];
 }
 
 const TAG_OPTIONS = ['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'] as const;

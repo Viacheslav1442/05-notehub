@@ -8,7 +8,7 @@ import NoteList from "../NoteList/NoteList.tsx";
 import Loader from "../Loader/Loader.tsx";
 import NoteModal from "../Modal/Modal.tsx";
 import NoteForm from "../NoteForm/NoteForm.tsx";
-import type { Note, NoteCreate, NoteUpdate } from "../../types/note.ts";
+import type { Note } from "../../types/note.ts";
 import toast from "react-hot-toast";
 
 type Variant = "CREATE" | "UPDATE";

@@ -1,5 +1,4 @@
 import css from './Modal.module.css';
-
 import { useEffect, type ReactNode, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -26,26 +25,8 @@ const Modal = ({ children, onClose }: ModalProps) => {
     };
 
     return createPortal(
-        <div
-            style={{
-                position: 'fixed', inset: 0,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                display: 'flex', justifyContent: 'center', alignItems: 'center',
-                zIndex: 1000,
-            }}
-            onClick={onBackdropClick}
-        >
-            <div
-                style={{
-                    backgroundColor: '#fff',
-                    padding: 20,
-                    borderRadius: 8,
-                    maxHeight: '90vh',
-                    overflowY: 'auto',
-                    maxWidth: '90vw',
-                }}
-                onClick={e => e.stopPropagation()}
-            >
+        <div className={css.backdrop} onClick={onBackdropClick}>
+            <div className={css.modal} onClick={e => e.stopPropagation()}>
                 {children}
             </div>
         </div>,

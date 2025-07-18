@@ -15,8 +15,8 @@ const Pagination = ({ totalPages, currentPage, onPageChange }: PaginationProps) 
             onPageChange={({ selected }) => onPageChange(selected + 1)}
             pageRangeDisplayed={5}
             marginPagesDisplayed={1}
-            containerClassName="pagination"
-            activeClassName="active"
+            containerClassName={css.pagination}
+            activeClassName={css.active}
             previousLabel="←"
             nextLabel="→"
         />

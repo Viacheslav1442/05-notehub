@@ -30,8 +30,8 @@ const NoteForm = ({ variant, note, onClose, onSubmit }: NoteFormProps) => {
     });
 
     return (
-        <form onSubmit={formik.handleSubmit}>
-            <label>
+        <form onSubmit={formik.handleSubmit} className={css.form}>
+            <label className={css.label}>
                 Title
                 <input
                     name="title"
@@ -39,38 +39,45 @@ const NoteForm = ({ variant, note, onClose, onSubmit }: NoteFormProps) => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     type="text"
+                    className={css.input}
                 />
-                <ErrorMessage name="title" component="div" />
+                <ErrorMessage name="title" component="div" className={css.error} />
             </label>
 
-            <label>
+            <label className={css.label}>
                 Content
                 <textarea
                     name="content"
                     value={formik.values.content}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
+                    className={css.textarea}
                 />
-                <ErrorMessage name="content" component="div" />
+                <ErrorMessage name="content" component="div" className={css.error} />
             </label>
 
-            <label>
+            <label className={css.label}>
                 Tag
                 <select
                     name="tag"
                     value={formik.values.tag}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
+                    className={css.select}
                 >
                     {TAG_OPTIONS.map(tag => (
                         <option key={tag} value={tag}>{tag}</option>
                     ))}
                 </select>
-                <ErrorMessage name="tag" component="div" />
+                <ErrorMessage name="tag" component="div" className={css.error} />
             </label>
 
-            <button type="button" onClick={onClose}>Cancel</button>
-            <button type="submit">{variant === 'CREATE' ? 'Create' : 'Update'}</button>
+            <div className={css.buttons}>
+                <button type="button" onClick={onClose} className={css.buttonCancel}>Cancel</button>
+                <button type="submit" className={css.buttonSubmit}>
+                    {variant === 'CREATE' ? 'Create' : 'Update'}
+                </button>
+            </div>
         </form>
     );
 };

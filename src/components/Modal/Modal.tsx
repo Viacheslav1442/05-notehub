@@ -1,39 +1,48 @@
-import css from './Modal.module.css';
-import { type ReactNode, type MouseEvent, useEffect } from 'react';
+import { useEffect, type ReactNode, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 
-export interface ModalProps {
+interface ModalProps {
     children: ReactNode;
     onClose: () => void;
 }
 
 const Modal = ({ children, onClose }: ModalProps) => {
     useEffect(() => {
-        const handlePressEsc = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                onClose();
-            }
-        };
+        const handleEsc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
 
-        document.addEventListener('keydown', handlePressEsc);
-
-        // Disable scroll on mount
         document.body.style.overflow = 'hidden';
+        document.addEventListener('keydown', handleEsc);
 
         return () => {
-            document.removeEventListener('keydown', handlePressEsc);
-            // Restore scroll on unmount
             document.body.style.overflow = '';
+            document.removeEventListener('keydown', handleEsc);
         };
     }, [onClose]);
 
+    const onBackdropClick = (e: MouseEvent) => {
+        if (e.target === e.currentTarget) onClose();
+    };
+
     return createPortal(
-        <div className={css.backdrop} onClick={onClose}>
+        <div
+            style={{
+                position: 'fixed', inset: 0,
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                display: 'flex', justifyContent: 'center', alignItems: 'center',
+                zIndex: 1000,
+            }}
+            onClick={onBackdropClick}
+        >
             <div
-                className={css.modal}
-                onClick={(event: MouseEvent) => {
-                    event.stopPropagation();
+                style={{
+                    backgroundColor: '#fff',
+                    padding: 20,
+                    borderRadius: 8,
+                    maxHeight: '90vh',
+                    overflowY: 'auto',
+                    maxWidth: '90vw',
                 }}
+                onClick={e => e.stopPropagation()}
             >
                 {children}
             </div>

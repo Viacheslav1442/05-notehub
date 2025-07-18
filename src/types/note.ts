@@ -1,20 +1,20 @@
 export interface Note {
     id: number;
     title: string;
-    content: string;
-    tag: string;
+    content?: string;
+    tag: 'Todo' | 'Work' | 'Personal' | 'Meeting' | 'Shopping';
     createdAt: string;
     updatedAt: string;
 }
 
-export type NoteUpdate = {
-    title?: string;
+export interface NoteCreate {
+    title: string;
     content?: string;
-    tag?: string;
+    tag: 'Todo' | 'Work' | 'Personal' | 'Meeting' | 'Shopping';
 }
 
-export type NoteCreate = {
-    title: string;
-    content: string;
-    tag: string;
+export interface NoteUpdate {
+    title?: string;
+    content?: string;
+    tag?: 'Todo' | 'Work' | 'Personal' | 'Meeting' | 'Shopping';
 }

@@ -1,134 +1,144 @@
-import { useEffect, useState } from "react";
-import css from "./App.module.css";
-import SearchBox from "../SearchBox/SearchBox";
-import Error from "../Error/Error";
-import Pagination from "../Pagination/Pagination";
-import { useNotes } from "../../hooks/useNotes";
-import NoteList from "../NoteList/NoteList";
-import Loader from "../Loader/Loader";
-import Modal from "../Modal/Modal";
-import NoteForm from "../NoteForm/NoteForm";
-import type { Note } from "../../types/note";
-import toast from "react-hot-toast";
+import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import debounce from 'lodash.debounce';
 
-type ModalVariant = "CREATE" | "UPDATE";
+import NoteList from '../NoteList/NoteList';
+import NoteForm from '../NoteForm/NoteForm';
+import Modal from '../Modal/Modal';
+import Pagination from '../Pagination/Pagination';
+import SearchBox from '../SearchBox/SearchBox';
 
-const DEFAULT_TAGS = ['Todo', 'Personal', 'Work'];
+import { fetchNotes, createNote, updateNote, deleteNote } from '../../services/noteService';
+import type { Note, NoteCreate, NoteUpdate } from '../../types/note';
 
-function App() {
-    const [page, setPage] = useState<number>(1);
-    const [query, setQuery] = useState<string>("");
+type ModalVariant = 'CREATE' | 'UPDATE';
+
+const App = () => {
+    const [page, setPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalVariant, setModalVariant] = useState<ModalVariant>('CREATE');
     const [currentNote, setCurrentNote] = useState<Note | null>(null);
-    const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
-    const [tags, setTags] = useState<string[]>(DEFAULT_TAGS);
-    const [modalVariant, setModalVariant] = useState<ModalVariant>("CREATE");
 
-    const onClose = () => {
-        setCurrentNote(null);
-        setIsOpenModal(false);
+    const queryClient = useQueryClient();
+
+
+    const debouncedSetSearch = useCallback(
+        debounce((val: string) => {
+            setDebouncedSearch(val);
+        }, 500),
+        []
+    );
+
+
+    const onSearch = (val: string) => {
+        setSearchTerm(val);
+        debouncedSetSearch(val);
     };
 
-    const onOpen = (note: Note) => {
-        setCurrentNote(note);
-        setIsOpenModal(true);
-    };
-
-    const onSearch = (searchQuery: string) => {
-        setQuery(searchQuery);
-    };
-
-    const onModalVariant = (variant: ModalVariant) => {
-        setModalVariant(variant);
-    };
-
-    const onClickCreateBtn = () => {
-        setIsOpenModal(true);
-        onModalVariant("CREATE");
-    };
-
-    const { data, isLoading, error } = useNotes(page, query);
-
+    // Скидаємо сторінку на 1 при зміні debouncedSearch
     useEffect(() => {
         setPage(1);
-    }, [query]);
+    }, [debouncedSearch]);
 
-    useEffect(() => {
-        if (!data || !Array.isArray(data.notes)) return;
 
-        if (data.notes.length === 0) {
-            toast.error("There is no data");
+    const { data, isLoading, error } = useQuery(
+        ['notes', page, debouncedSearch],
+        () => fetchNotes(page, debouncedSearch),
+    );
+
+    // Мутації для створення, оновлення і видалення нотаток
+    const createMutation = useMutation(createNote, {
+        onSuccess: () => {
+            queryClient.invalidateQueries(['notes']);
+            setIsModalOpen(false);
+        },
+    });
+
+    const updateMutation = useMutation(
+        ({ id, data }: { id: number; data: NoteUpdate }) => updateNote(id, data),
+        {
+            onSuccess: () => {
+                queryClient.invalidateQueries(['notes']);
+                setIsModalOpen(false);
+            },
         }
+    );
 
+    const deleteMutation = useMutation(deleteNote, {
+        onSuccess: () => {
+            queryClient.invalidateQueries(['notes']);
+        },
+    });
 
-        const fetchedTags: string[] = data.notes.map(note => note.tag);
-        const uniqueTags = Array.from(new Set<string>(fetchedTags));
-        const combinedTags = Array.from(new Set<string>([...DEFAULT_TAGS, ...uniqueTags]));
-        setTags(combinedTags);
-    }, [data]);
+    // Відкриття модалки для створення нотатки
+    const openCreateModal = () => {
+        setModalVariant('CREATE');
+        setCurrentNote(null);
+        setIsModalOpen(true);
+    };
 
-    const totalPages = data?.totalPages ?? 0;
+    // Відкриття модалки для редагування нотатки
+    const openEditModal = (note: Note) => {
+        setModalVariant('UPDATE');
+        setCurrentNote(note);
+        setIsModalOpen(true);
+    };
 
-    if (error) {
-        return (
-            <div className={css.app}>
-                <div className={`${css.container} ${css.header_container}`}>
-                    <header className={css.toolbar}>
-                        <SearchBox onSearch={onSearch} />
-                        {totalPages > 0 && (
-                            <Pagination
-                                page={page}
-                                setPage={setPage}
-                                totalPages={totalPages}
-                            />
-                        )}
-                        <button onClick={onClickCreateBtn} className={css.button}>
-                            Create note +
-                        </button>
-                    </header>
-                </div>
-                <Error message={"404 Not Found"} />
-            </div>
-        );
-    }
+    // Закриття модалки
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setCurrentNote(null);
+    };
+
+    // Обробка відправлення форми
+    const handleSubmit = (values: NoteCreate | NoteUpdate) => {
+        if (modalVariant === 'CREATE') {
+            createMutation.mutate(values as NoteCreate);
+        } else if (modalVariant === 'UPDATE' && currentNote) {
+            updateMutation.mutate({ id: currentNote.id, data: values as NoteUpdate });
+        }
+    };
+
+    // Видалення нотатки з підтвердженням
+    const handleDelete = (id: number) => {
+        if (confirm('Are you sure you want to delete this note?')) {
+            deleteMutation.mutate(id);
+        }
+    };
 
     return (
-        <div className={css.app}>
-            <div className={`${css.container} ${css.header_container}`}>
-                <header className={css.toolbar}>
-                    <SearchBox onSearch={onSearch} />
-                    {totalPages > 1 && (
-                        <Pagination
-                            page={page}
-                            onChangePage={setPage}
-                            totalPages={totalPages}
-                        />
-                    )}
-                    <button onClick={onClickCreateBtn} className={css.button}>
-                        Create note +
-                    </button>
-                </header>
-            </div>
+        <div>
+            <header>
+                <SearchBox onSearch={onSearch} value={searchTerm} />
+                <button onClick={openCreateModal}>Create note +</button>
+            </header>
+
+            {error && <p>Error loading notes</p>}
+
             {isLoading ? (
-                <Loader />
+                <p>Loading...</p>
             ) : (
-                <NoteList
-                    notes={Array.isArray(data?.notes) ? data.notes : []}
-                    setCurrentNote={onOpen}
-                    setVariant={onModalVariant}
-                />
+                <NoteList notes={data?.notes || []} onEdit={openEditModal} onDelete={handleDelete} />
             )}
-            {isOpenModal && (
-                <Modal onClose={onClose}>
+
+            {data?.totalPages > 1 && (
+                <Pagination totalPages={data.totalPages} currentPage={page} onPageChange={setPage} />
+            )}
+
+            {isModalOpen && (
+                <Modal onClose={closeModal}>
                     <NoteForm
                         variant={modalVariant}
-                        onClose={onClose}
                         note={currentNote}
-                        tags={tags}
+                        onClose={closeModal}
+                        onSubmit={handleSubmit}
                     />
                 </Modal>
             )}
         </div>
     );
-}
+};
 
 export default App;

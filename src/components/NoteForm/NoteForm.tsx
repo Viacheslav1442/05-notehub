@@ -11,19 +11,17 @@ interface NoteFormProps {
     tags: string[];
 }
 
-const TAG_OPTIONS = ['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'] as const;
-
-const NoteForm = ({ variant, note, onClose, onSubmit }: NoteFormProps) => {
+const NoteForm = ({ variant, note, onClose, onSubmit, tags }: NoteFormProps) => {
     const formik = useFormik({
         initialValues: {
             title: note?.title || '',
             content: note?.content || '',
-            tag: note?.tag || 'Todo',
+            tag: note?.tag || tags[0] || 'Todo',
         },
         validationSchema: Yup.object({
             title: Yup.string().required('Title is required'),
             content: Yup.string(),
-            tag: Yup.mixed().oneOf(TAG_OPTIONS).required('Tag is required'),
+            tag: Yup.mixed().oneOf(tags).required('Tag is required'),
         }),
         onSubmit: (values) => {
             onSubmit(values);
@@ -66,7 +64,7 @@ const NoteForm = ({ variant, note, onClose, onSubmit }: NoteFormProps) => {
                     onBlur={formik.handleBlur}
                     className={css.select}
                 >
-                    {TAG_OPTIONS.map(tag => (
+                    {tags.map(tag => (
                         <option key={tag} value={tag}>{tag}</option>
                     ))}
                 </select>

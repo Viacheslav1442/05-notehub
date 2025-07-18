@@ -9,7 +9,12 @@ interface ModalProps {
 
 const Modal = ({ children, onClose }: ModalProps) => {
     useEffect(() => {
-        const handleEsc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+
 
         document.body.style.overflow = 'hidden';
         document.addEventListener('keydown', handleEsc);
@@ -20,13 +25,16 @@ const Modal = ({ children, onClose }: ModalProps) => {
         };
     }, [onClose]);
 
-    const onBackdropClick = (e: MouseEvent) => {
-        if (e.target === e.currentTarget) onClose();
+    const onBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
+        if (e.target === e.currentTarget) {
+            onClose();
+        }
     };
+
 
     return createPortal(
         <div className={css.backdrop} onClick={onBackdropClick}>
-            <div className={css.modal} onClick={e => e.stopPropagation()}>
+            <div className={css.modal} onClick={(e) => e.stopPropagation()}>
                 {children}
             </div>
         </div>,

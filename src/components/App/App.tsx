@@ -15,17 +15,24 @@ type Variant = "CREATE" | "UPDATE";
 
 function App() {
     const [page, setPage] = useState<number>(1);
+    const [searchInput, setSearchInput] = useState<string>("");
     const [query, setQuery] = useState<string>("");
     const [currentNote, setCurrentNote] = useState<Note | null>(null);
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
     const [tags, setTags] = useState<string[]>([]);
     const [modalVariant, setModalVariant] = useState<Variant>("CREATE");
 
-    const { data, isLoading, error } = useNotes({ search: query, page });
 
     useEffect(() => {
-        setPage(1);
-    }, [query]);
+        const handler = setTimeout(() => {
+            setQuery(searchInput);
+            setPage(1);
+        }, 500);
+
+        return () => clearTimeout(handler);
+    }, [searchInput]);
+
+    const { data, isLoading, error } = useNotes({ search: query, page });
 
     useEffect(() => {
         if (!data) return;
@@ -48,8 +55,8 @@ function App() {
         setModalVariant("UPDATE");
     };
 
-    const onSearch = (query: string) => {
-        setQuery(query);
+    const onSearch = (newQuery: string) => {
+        setSearchInput(newQuery);
     };
 
     const onClickCreateBtn = () => {
@@ -58,7 +65,6 @@ function App() {
         setModalVariant("CREATE");
     };
 
-    // Виправлено: видалено unused параметр values
     const handleSubmit = () => {
         onClose();
         toast.success(

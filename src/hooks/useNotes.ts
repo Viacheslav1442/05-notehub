@@ -1,15 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchNotes } from "../services/noteService";
-import type { Note, } from "../types/note";
+import { useQuery } from '@tanstack/react-query';
+import { fetchNotes } from '../services/noteService';
+import type { Note } from '../types/note';
 
-type NotesResponse = {
+interface NotesResponse {
     notes: Note[];
     totalPages: number;
-};
+}
 
-export const useNotes = (page: number, query: string) => {
+interface UseNotesParams {
+    search: string;
+    page: number;
+}
+
+export function useNotes({ search, page }: UseNotesParams) {
     return useQuery<NotesResponse>({
-        queryKey: ['notes', page, query],
-        queryFn: () => fetchNotes(page, query),
+        queryKey: ['notes', page, search],
+        queryFn: () => fetchNotes(page, search),
     });
-};
+}

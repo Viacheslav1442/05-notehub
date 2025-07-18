@@ -1,128 +1,70 @@
 import { useEffect, useState } from "react";
 import css from "./App.module.css";
-import SearchBox from "../SearchBox/SearchBox.tsx";
-import Error from "../Error/Error.tsx";
-import Pagination from "../Pagination/Pagination.tsx";
-import { useNotes } from "../../hooks/useNotes.ts";
-import NoteList from "../NoteList/NoteList.tsx";
-import Loader from "../Loader/Loader.tsx";
-import Modal from "../Modal/Modal";
-import NoteForm from "../NoteForm/NoteForm.tsx";
-import type { Note } from "../../types/note.ts";
-import toast from "react-hot-toast";
-import { ModalVariant } from "../../enums";
-import { useDebouncedCallback } from "use-debounce"; // <== Додано
+import SearchBox from "../SearchBox/SearchBox";
+import Error from "../Error/Error";
+import Pagination from "../Pagination/Pagination";
+import { useNotes } from "../../hooks/useNotes";
+import NoteList from "../NoteList/NoteList";
+import Loader from "../Loader/Loader";
+import NoteModal from "../Modal/Modal";
+import { Note } from "../../types/note";
+import { ModalVariant } from "../../types/modal";
 
-const DEFAULT_TAGS = ["Todo", "Personal", "Work"];
+const App = () => {
+    const [page, setPage] = useState(1);
+    const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+    const [variant, setVariant] = useState<ModalVariant>("CREATE");
+    const [tags, setTags] = useState<string[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-function App() {
-    const [page, setPage] = useState<number>(1);
-    const [query, setQuery] = useState<string>("");
-    const [debouncedQuery, setDebouncedQuery] = useState<string>("");
-    const [currentNote, setCurrentNote] = useState<Note | null>(null);
-    const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
-    const [tags, setTags] = useState<string[]>(DEFAULT_TAGS);
-    const [modalVariant, setModalVariant] = useState<ModalVariant>(
-        ModalVariant.CREATE
-    );
-
-    const onClose = () => {
-        setCurrentNote(null);
-        setIsOpenModal(false);
-    };
-
-    const onOpen = (note: Note) => {
-        setCurrentNote(note);
-        setIsOpenModal(true);
-    };
-
-    const onSearch = useDebouncedCallback((value: string) => {
-        setDebouncedQuery(value);
-    }, 500); // <== затримка 500 мс
-
-    const onModalVariant = (variant: ModalVariant) => {
-        setModalVariant(variant);
-    };
-
-    const onClickCreateBtn = () => {
-        setIsOpenModal(true);
-        onModalVariant(ModalVariant.CREATE);
-    };
-
-    const { data, isLoading, error } = useNotes(page, debouncedQuery);
+    const { data, isLoading, isError } = useNotes(page);
 
     useEffect(() => {
-        setPage(1);
-    }, [debouncedQuery]);
+        if (!data) return;
+        const allTags = data.results
+            .flatMap((note: Note) => note.tags || [])
+            .filter((tag: unknown): tag is string => typeof tag === "string");
 
-    useEffect(() => {
-        if (!data || !Array.isArray(data.notes)) return;
-
-        if (data.notes.length === 0) {
-            toast.error("There is no data");
-        }
-
-        const fetchedTags = data.notes.map((note) => note.tag);
-        const uniqueTags = Array.from(new Set(fetchedTags));
-        const combinedTags = Array.from(new Set([...DEFAULT_TAGS, ...uniqueTags]));
-        setTags(combinedTags);
+        const uniqueTags = [...new Set(allTags)];
+        setTags(uniqueTags);
     }, [data]);
 
-    const totalPages = data?.totalPages ?? 0;
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        setSelectedNote(null);
+    };
 
-    if (error) {
-        return (
-            <div className={css.app}>
-                <div className={`${css.container} ${css.header_container}`}>
-                    <header className={css.toolbar}>
-                        <SearchBox onSearch={onSearch} />
-                        {totalPages > 0 && (
-                            <Pagination page={page} setPage={setPage} totalPages={totalPages} />
-                        )}
-                        <button onClick={onClickCreateBtn} className={css.button}>
-                            Create note +
-                        </button>
-                    </header>
-                </div>
-                <Error message={"404 Not Found"} />
-            </div>
-        );
-    }
+    const handleNoteClick = (note: Note) => {
+        setSelectedNote(note);
+        setVariant("UPDATE");
+        setIsModalOpen(true);
+    };
 
     return (
-        <div className={css.app}>
-            <div className={`${css.container} ${css.header_container}`}>
-                <header className={css.toolbar}>
-                    <SearchBox onSearch={onSearch} />
-                    {totalPages > 1 && (
-                        <Pagination page={page} setPage={setPage} totalPages={totalPages} />
-                    )}
-                    <button onClick={onClickCreateBtn} className={css.button}>
-                        Create note +
-                    </button>
-                </header>
-            </div>
-            {isLoading ? (
-                <Loader />
-            ) : (
-                <NoteList
-                    setCurrentNote={onOpen}
-                    setVariant={onModalVariant}
-                    notes={Array.isArray(data?.notes) ? data.notes : []}
-                />
-            )}
-            {isOpenModal && (
-                <Modal onClose={onClose}>
-                    <NoteForm
-                        variant={modalVariant}
-                        onClose={onClose}
-                        note={currentNote}
-                        tags={tags}
+        <div className={css.wrapper}>
+            <SearchBox />
+            {isLoading && <Loader />}
+            {isError && <Error />}
+            {data && (
+                <>
+                    <NoteList notes={data.results} onNoteClick={handleNoteClick} />
+                    <Pagination
+                        page={page}
+                        onChangePage={setPage}
+                        totalPages={data.total_pages}
                     />
-                </Modal>
+                </>
+            )}
+            {isModalOpen && (
+                <NoteModal
+                    variant={variant}
+                    onClose={handleModalClose}
+                    note={selectedNote}
+                    tags={tags}
+                />
             )}
         </div>
     );
-}
+};
 
 export default App;

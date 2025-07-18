@@ -1,21 +1,28 @@
 import axios from 'axios';
-import type { NoteCreate, NoteUpdate, Note } from '../types/note';
+import type { Note, NoteCreate, NoteUpdate } from '../types/note';
 
 const instance = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL,
-    headers: {
-        Authorization: `Bearer ${import.meta.env.VITE_API_KEY}`,
-    },
+    baseURL: 'https://your.api.url/',
+    headers: { Authorization: `Bearer ${import.meta.env.VITE_API_TOKEN}` },
 });
 
-export const fetchNotes = (page: number, query: string) =>
-    instance.get<Note>('/notes', { params: { page, query } }).then(res => res.data);
 
-export const createNote = (note: NoteCreate) =>
-    instance.post<Note>('/notes', note).then(res => res.data);
+export const fetchNotes = (page: number, search: string): Promise<{ notes: Note[]; totalPages: number }> => {
+    return instance.get('/notes', { params: { page, search } }).then(res => res.data);
+};
 
-export const updateNote = (id: number, note: NoteUpdate) =>
-    instance.put<Note>(`/notes/${id}`, note).then(res => res.data);
+export const createNote = (data: NoteCreate): Promise<Note> => {
+    return instance.post('/notes', data).then(res => res.data);
+};
 
-export const deleteNote = (id: number) =>
-    instance.delete<void>(`/notes/${id}`).then(res => res.data);
+export const updateNote = (id: number, data: NoteUpdate): Promise<Note> => {
+    return instance.put(`/notes/${id}`, data).then(res => res.data);
+};
+
+export const deleteNote = (id: number): Promise<void> => {
+    return instance.delete(`/notes/${id}`).then(() => { });
+};
+export const fetchNoteById = async (id: number): Promise<Note> => {
+    const response = await axios.get<Note>(`/api/notes/${id}`);
+    return response.data;
+};

@@ -23,7 +23,6 @@ const App = () => {
 
     const queryClient = useQueryClient();
 
-
     const debouncedSetSearch = useCallback(
         debounce((val: string) => {
             setDebouncedSearch(val);
@@ -31,68 +30,67 @@ const App = () => {
         []
     );
 
-
     const onSearch = (val: string) => {
         setSearchTerm(val);
         debouncedSetSearch(val);
     };
 
-    // Скидаємо сторінку на 1 при зміні debouncedSearch
     useEffect(() => {
         setPage(1);
     }, [debouncedSearch]);
 
+    // Типізуємо відповідь, наприклад:
+    interface NotesResponse {
+        notes: Note[];
+        totalPages: number;
+    }
 
-    const { data, isLoading, error } = useQuery(
+    const { data, isLoading, error } = useQuery<NotesResponse>(
         ['notes', page, debouncedSearch],
         () => fetchNotes(page, debouncedSearch),
+        { keepPreviousData: true }
     );
 
-    // Мутації для створення, оновлення і видалення нотаток
-    const createMutation = useMutation(createNote, {
+    const createMutation = useMutation<Note, Error, NoteCreate>({
+        mutationFn: createNote,
         onSuccess: () => {
             queryClient.invalidateQueries(['notes']);
             setIsModalOpen(false);
         },
     });
 
-    const updateMutation = useMutation(
-        ({ id, data }: { id: number; data: NoteUpdate }) => updateNote(id, data),
-        {
-            onSuccess: () => {
-                queryClient.invalidateQueries(['notes']);
-                setIsModalOpen(false);
-            },
-        }
-    );
+    const updateMutation = useMutation<Note, Error, { id: number; data: NoteUpdate }>({
+        mutationFn: ({ id, data }) => updateNote(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['notes']);
+            setIsModalOpen(false);
+        },
+    });
 
-    const deleteMutation = useMutation(deleteNote, {
+    const deleteMutation = useMutation<void, Error, number>({
+        mutationFn: deleteNote,
         onSuccess: () => {
             queryClient.invalidateQueries(['notes']);
         },
     });
 
-    // Відкриття модалки для створення нотатки
     const openCreateModal = () => {
         setModalVariant('CREATE');
         setCurrentNote(null);
         setIsModalOpen(true);
     };
 
-    // Відкриття модалки для редагування нотатки
     const openEditModal = (note: Note) => {
         setModalVariant('UPDATE');
         setCurrentNote(note);
         setIsModalOpen(true);
     };
 
-    // Закриття модалки
     const closeModal = () => {
         setIsModalOpen(false);
         setCurrentNote(null);
     };
 
-    // Обробка відправлення форми
     const handleSubmit = (values: NoteCreate | NoteUpdate) => {
         if (modalVariant === 'CREATE') {
             createMutation.mutate(values as NoteCreate);
@@ -101,7 +99,6 @@ const App = () => {
         }
     };
 
-    // Видалення нотатки з підтвердженням
     const handleDelete = (id: number) => {
         if (confirm('Are you sure you want to delete this note?')) {
             deleteMutation.mutate(id);
@@ -111,7 +108,7 @@ const App = () => {
     return (
         <div>
             <header>
-                <SearchBox onSearch={onSearch} value={searchTerm} />
+                <SearchBox onSearch={onSearch} /* value={searchTerm} — якщо SearchBox підтримує цей пропс */ />
                 <button onClick={openCreateModal}>Create note +</button>
             </header>
 
@@ -120,21 +117,16 @@ const App = () => {
             {isLoading ? (
                 <p>Loading...</p>
             ) : (
-                <NoteList notes={data?.notes || []} onEdit={openEditModal} onDelete={handleDelete} />
+                <NoteList notes={data?.notes ?? []} onEdit={openEditModal} onDelete={handleDelete} />
             )}
 
-            {data?.totalPages > 1 && (
+            {data?.totalPages && data.totalPages > 1 && (
                 <Pagination totalPages={data.totalPages} currentPage={page} onPageChange={setPage} />
             )}
 
             {isModalOpen && (
                 <Modal onClose={closeModal}>
-                    <NoteForm
-                        variant={modalVariant}
-                        note={currentNote}
-                        onClose={closeModal}
-                        onSubmit={handleSubmit}
-                    />
+                    <NoteForm variant={modalVariant} note={currentNote} onClose={closeModal} onSubmit={handleSubmit} />
                 </Modal>
             )}
         </div>

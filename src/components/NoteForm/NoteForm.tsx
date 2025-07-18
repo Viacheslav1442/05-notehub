@@ -1,27 +1,30 @@
 import css from './NoteForm.module.css';
 import { useFormik, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import type { Note, NoteCreate, NoteUpdate } from '../../types/note';
+import type { NoteCreate, NoteUpdate } from '../../types/note';
+
+const TAG_OPTIONS = ['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'] as const;
+type TagType = typeof TAG_OPTIONS[number];
 
 interface NoteFormProps {
     variant: 'CREATE' | 'UPDATE';
-    note?: Note | null;
+    note?: (NoteCreate & { tag: TagType }) | null;
     onClose: () => void;
     onSubmit: (values: NoteCreate | NoteUpdate) => void;
-    tags: string[];
+    tags: readonly TagType[];
 }
 
 const NoteForm = ({ variant, note, onClose, onSubmit, tags }: NoteFormProps) => {
-    const formik = useFormik({
+    const formik = useFormik<NoteCreate | NoteUpdate>({
         initialValues: {
             title: note?.title || '',
             content: note?.content || '',
-            tag: note?.tag || tags[0] || 'Todo',
+            tag: (note?.tag || 'Todo') as TagType,
         },
         validationSchema: Yup.object({
             title: Yup.string().required('Title is required'),
-            content: Yup.string(),
-            tag: Yup.mixed().oneOf(tags).required('Tag is required'),
+            content: Yup.string(), // content необов’язковий
+            tag: Yup.mixed<TagType>().oneOf(TAG_OPTIONS).required('Tag is required'),
         }),
         onSubmit: (values) => {
             onSubmit(values);
@@ -64,15 +67,19 @@ const NoteForm = ({ variant, note, onClose, onSubmit, tags }: NoteFormProps) => 
                     onBlur={formik.handleBlur}
                     className={css.select}
                 >
-                    {tags.map(tag => (
-                        <option key={tag} value={tag}>{tag}</option>
+                    {tags.map((tag) => (
+                        <option key={tag} value={tag}>
+                            {tag}
+                        </option>
                     ))}
                 </select>
                 <ErrorMessage name="tag" component="div" className={css.error} />
             </label>
 
             <div className={css.buttons}>
-                <button type="button" onClick={onClose} className={css.buttonCancel}>Cancel</button>
+                <button type="button" onClick={onClose} className={css.buttonCancel}>
+                    Cancel
+                </button>
                 <button type="submit" className={css.buttonSubmit}>
                     {variant === 'CREATE' ? 'Create' : 'Update'}
                 </button>

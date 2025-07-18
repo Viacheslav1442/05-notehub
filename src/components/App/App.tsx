@@ -13,15 +13,20 @@ import toast from "react-hot-toast";
 
 type Variant = "CREATE" | "UPDATE";
 
+// Фіксований набір тегів (має співпадати з NoteForm і типами тегів)
+const TAG_OPTIONS = ['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'] as const;
+type TagType = typeof TAG_OPTIONS[number];
+
 function App() {
     const [page, setPage] = useState<number>(1);
     const [searchInput, setSearchInput] = useState<string>("");
     const [query, setQuery] = useState<string>("");
     const [currentNote, setCurrentNote] = useState<Note | null>(null);
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
-    const [tags, setTags] = useState<string[]>([]);
     const [modalVariant, setModalVariant] = useState<Variant>("CREATE");
 
+    // Використовуємо фіксований набір тегів
+    const [tags] = useState<readonly TagType[]>(TAG_OPTIONS);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -40,8 +45,6 @@ function App() {
         if (Array.isArray(data.notes) && data.notes.length === 0) {
             toast.error("There is no data");
         }
-
-        setTags([...new Set(data.notes.map((note) => note.tag))]);
     }, [data]);
 
     const onClose = () => {

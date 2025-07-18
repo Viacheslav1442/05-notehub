@@ -29,34 +29,31 @@ export const fetchNotes = async (
         params.search = search.trim();
     }
 
-    const { data } = await instance.get('', { params });
-
-    return {
-        notes: data.notes,
-        totalPages: data.totalPages,
-    };
+    const { data } = await instance.get<NoteResponseAll>('', { params });
+    return data;
 };
 
-export const createNote = async (note: {
-    title: string;
-    content: string;
-    tag: string;
-}): Promise<Note> => {
-    const { data } = await instance.post('', note);
+export const createNote = async (
+    note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<Note> => {
+    const { data } = await instance.post<Note>('', note);
     return data;
 };
 
 export const deleteNote = async (id: string): Promise<Note> => {
-    const { data } = await instance.delete(`/${id}`);
+    const { data } = await instance.delete<Note>(`/${id}`);
     return data;
 };
 
 export const getById = async (id: string): Promise<Note> => {
-    const { data } = await instance.get(`/${id}`);
+    const { data } = await instance.get<Note>(`/${id}`);
     return data;
 };
 
-export const updateById = async (id: number, data: NoteUpdate): Promise<Note> => {
-    const response = await instance.patch(`/${id}`, data);
-    return response.data;
+export const updateById = async (
+    id: number,
+    update: NoteUpdate
+): Promise<Note> => {
+    const { data } = await instance.patch<Note>(`/${id}`, update);
+    return data;
 };

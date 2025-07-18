@@ -11,17 +11,19 @@ import NoteForm from "../NoteForm/NoteForm.tsx";
 import type { Note } from "../../types/note.ts";
 import toast from "react-hot-toast";
 import { ModalVariant } from "../../enums";
+import { useDebouncedCallback } from "use-debounce"; // <== Додано
 
-const DEFAULT_TAGS = ['Todo', 'Personal', 'Work'];
+const DEFAULT_TAGS = ["Todo", "Personal", "Work"];
 
 function App() {
     const [page, setPage] = useState<number>(1);
     const [query, setQuery] = useState<string>("");
+    const [debouncedQuery, setDebouncedQuery] = useState<string>("");
     const [currentNote, setCurrentNote] = useState<Note | null>(null);
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
     const [tags, setTags] = useState<string[]>(DEFAULT_TAGS);
     const [modalVariant, setModalVariant] = useState<ModalVariant>(
-        ModalVariant.CREATE,
+        ModalVariant.CREATE
     );
 
     const onClose = () => {
@@ -34,9 +36,9 @@ function App() {
         setIsOpenModal(true);
     };
 
-    const onSearch = (query: string) => {
-        setQuery(query);
-    };
+    const onSearch = useDebouncedCallback((value: string) => {
+        setDebouncedQuery(value);
+    }, 500); // <== затримка 500 мс
 
     const onModalVariant = (variant: ModalVariant) => {
         setModalVariant(variant);
@@ -47,11 +49,11 @@ function App() {
         onModalVariant(ModalVariant.CREATE);
     };
 
-    const { data, isLoading, error } = useNotes(page, query);
+    const { data, isLoading, error } = useNotes(page, debouncedQuery);
 
     useEffect(() => {
         setPage(1);
-    }, [query]);
+    }, [debouncedQuery]);
 
     useEffect(() => {
         if (!data || !Array.isArray(data.notes)) return;
@@ -60,7 +62,7 @@ function App() {
             toast.error("There is no data");
         }
 
-        const fetchedTags = data.notes.map(note => note.tag);
+        const fetchedTags = data.notes.map((note) => note.tag);
         const uniqueTags = Array.from(new Set(fetchedTags));
         const combinedTags = Array.from(new Set([...DEFAULT_TAGS, ...uniqueTags]));
         setTags(combinedTags);
@@ -75,11 +77,7 @@ function App() {
                     <header className={css.toolbar}>
                         <SearchBox onSearch={onSearch} />
                         {totalPages > 0 && (
-                            <Pagination
-                                page={page}
-                                setPage={setPage}
-                                totalPages={totalPages}
-                            />
+                            <Pagination page={page} setPage={setPage} totalPages={totalPages} />
                         )}
                         <button onClick={onClickCreateBtn} className={css.button}>
                             Create note +
@@ -97,11 +95,7 @@ function App() {
                 <header className={css.toolbar}>
                     <SearchBox onSearch={onSearch} />
                     {totalPages > 1 && (
-                        <Pagination
-                            page={page}
-                            setPage={setPage}
-                            totalPages={totalPages}
-                        />
+                        <Pagination page={page} setPage={setPage} totalPages={totalPages} />
                     )}
                     <button onClick={onClickCreateBtn} className={css.button}>
                         Create note +

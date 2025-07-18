@@ -1,27 +1,40 @@
-import css from "./Pagination.module.css";
-import ReactPaginate from "react-paginate";
-import { type Dispatch, type SetStateAction } from "react";
+import css from './Modal.module.css';
+import { type MouseEvent, type ReactNode, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
-export interface PaginationProps {
-    totalPages: number;
-    page: number;
-    setPage: Dispatch<SetStateAction<number>>;
+export interface ModalProps {
+    children: ReactNode;
+    onClose: () => void;
 }
 
-const Pagination = ({ totalPages, page, setPage }: PaginationProps) => {
-    return (
-        <ReactPaginate
-            pageCount={totalPages}
-            pageRangeDisplayed={5}
-            marginPagesDisplayed={1}
-            onPageChange={({ selected }) => setPage(selected + 1)}
-            forcePage={page - 1}
-            containerClassName={css.pagination}
-            activeClassName={css.active}
-            nextLabel="→"
-            previousLabel="←"
-        />
+const Modal = ({ children, onClose }: ModalProps) => {
+    useEffect(() => {
+        const handleEsc = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                onClose();
+            }
+        };
+
+        document.addEventListener('keydown', handleEsc);
+        document.body.style.overflow = 'hidden'; // заборонити прокручування
+
+        return () => {
+            document.removeEventListener('keydown', handleEsc);
+            document.body.style.overflow = ''; // повернути прокручування
+        };
+    }, [onClose]);
+
+    return createPortal(
+        <div className={css.backdrop} onClick={onClose}>
+            <div
+                className={css.modal}
+                onClick={(event: MouseEvent) => event.stopPropagation()}
+            >
+                {children}
+            </div>
+        </div>,
+        document.body
     );
 };
 
-export default Pagination;
+export default Modal;

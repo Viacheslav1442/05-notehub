@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as noteService from '../services/noteService';
-import type { Note, Create } from '../types/note';
+import type { Note } from '../types/note';
 import toast from "react-hot-toast";
 
 export const useCreateNote = () => {

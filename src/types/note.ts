@@ -7,4 +7,17 @@ export interface Note {
     tag: NoteTag;
 }
 
+
+export interface NoteCreate {
+    title: string;
+    content: string;
+    tags: string[];
+}
+
+export interface NoteUpdate {
+    title?: string;
+    content?: string;
+    tags?: string[];
+}
+
 export type NoteTag = 'Todo' | 'Work' | 'Personal' | 'Meeting' | 'Shopping';

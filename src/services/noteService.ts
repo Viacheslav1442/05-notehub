@@ -2,8 +2,8 @@ import axios from 'axios';
 import type { Note, NoteCreate, NoteUpdate } from '../types/note';
 
 const instance = axios.create({
-    baseURL: 'https://notehub-public.goit.study/api/docs',
-    headers: { Authorization: `Bearer ${import.meta.env.VITE_NOTEHUB_TOKEN}` },
+    baseURL: 'https://notehub-public.goit.study/api',
+    headers: { Authorization: `Bearer ${import.meta.env.VITE_API_TOKEN}` },
 });
 
 interface NoteHubResponse {
@@ -32,8 +32,8 @@ export async function fetchNotes(
     if (search.trim() !== "") {
         noteHubSearchParams.params.search = search.trim();
     }
-    const response = await axios.get<NoteHubResponse>(
-        "https://notehub-public.goit.study/api/notes/",
+    const response = await instance.get<NoteHubResponse>(
+        "/notes",
         noteHubSearchParams
     );
 

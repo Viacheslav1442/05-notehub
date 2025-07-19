@@ -1,90 +1,79 @@
-import css from './NoteForm.module.css';
-import { useFormik, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import type { NoteCreate, NoteUpdate } from '../../types/note';
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { createNote } from "../../services/noteService";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import css from "../NoteForm/NoteForm.module.css"
+import type { NoteTag } from "../../types/note";
 
-type TagType = 'Todo' | 'Work' | 'Personal' | 'Meeting' | 'Shopping';
 
-interface NoteFormProps {
-    variant: 'CREATE' | 'UPDATE';
-    note?: (NoteCreate & { tag: TagType }) | null;
+const validationSchema = Yup.object({
+    title: Yup.string().min(3).max(50).required(),
+    content: Yup.string().max(500),
+    tags: Yup.mixed().oneOf(['Todo', 'Work', 'Personal', 'Meeting', 'Shopping']).required(),
+});
+
+
+interface NoteFormProp {
     onClose: () => void;
-    onSubmit: (values: NoteCreate | NoteUpdate) => void;
-    tags: readonly TagType[];
 }
 
-const NoteForm = ({ variant, note, onClose, onSubmit, tags }: NoteFormProps) => {
-    const formik = useFormik<NoteCreate | NoteUpdate>({
-        initialValues: {
-            title: note?.title || '',
-            content: note?.content || '',
-            tag: (note?.tag || tags[0]) as TagType,
-        },
-        validationSchema: Yup.object({
-            title: Yup.string().required('Title is required'),
-            content: Yup.string(),
-            tag: Yup.mixed<TagType>().oneOf(tags).required('Tag is required'),
-        }),
-        onSubmit: (values) => {
-            onSubmit(values);
+export default function NoteForm({ onClose }: NoteFormProp) {
+    const queryClient = useQueryClient();
+    const mutation = useMutation({
+        mutationFn: createNote,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['notes'] });
+            onClose();
         },
     });
 
     return (
-        <form onSubmit={formik.handleSubmit} className={css.form}>
-            <label className={css.label}>
-                Title
-                <input
-                    name="title"
-                    value={formik.values.title}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    type="text"
-                    className={css.input}
-                />
-                <ErrorMessage name="title" component="div" className={css.error} />
-            </label>
+        <Formik initialValues={{ title: '', content: '', tag: 'Todo' }}
+            validationSchema={validationSchema}
+            onSubmit={(values) => mutation.mutate({ ...values, tag: values.tag as NoteTag })}
+        >
+            <Form className={css.form}>
+                <div className={css.formGroup}>
+                    <label htmlFor="title">Title</label>
+                    <Field type="text" name="title" className={css.input} />
+                    <ErrorMessage name="title" component="span" className={css.error} />
+                </div>
 
-            <label className={css.label}>
-                Content
-                <textarea
-                    name="content"
-                    value={formik.values.content}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={css.textarea}
-                />
-                <ErrorMessage name="content" component="div" className={css.error} />
-            </label>
+                <div className={css.formGroup}>
+                    <label htmlFor="content">Content</label>
+                    <Field
+                        as="textarea"
+                        name="content"
+                        rows={8}
+                        className={css.textarea}
+                    />
+                    <ErrorMessage name="content" component="span" className={css.error} />
+                </div>
 
-            <label className={css.label}>
-                Tag
-                <select
-                    name="tag"
-                    value={formik.values.tag}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={css.select}
-                >
-                    {tags.map((tag) => (
-                        <option key={tag} value={tag}>
-                            {tag}
-                        </option>
-                    ))}
-                </select>
-                <ErrorMessage name="tag" component="div" className={css.error} />
-            </label>
+                <div className={css.formGroup}>
+                    <label htmlFor="tag">Tag</label>
+                    <Field as="select" name="tag" className={css.select}>
+                        <option value="Todo">Todo</option>
+                        <option value="Work">Work</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Meeting">Meeting</option>
+                        <option value="Shopping">Shopping</option>
+                    </Field>
+                    <ErrorMessage name="tag" component="span" className={css.error} />
+                </div>
 
-            <div className={css.buttons}>
-                <button type="button" onClick={onClose} className={css.buttonCancel}>
-                    Cancel
-                </button>
-                <button type="submit" className={css.buttonSubmit}>
-                    {variant === 'CREATE' ? 'Create' : 'Update'}
-                </button>
-            </div>
-        </form>
+                <div className={css.actions}>
+                    <button type="button" className={css.cancelButton} onClick={onClose}>
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        className={css.submitButton}
+                    >
+                        Create note
+                    </button>
+                </div>
+            </Form>
+        </Formik>
     );
-};
-
-export default NoteForm;
+}

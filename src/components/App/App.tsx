@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import React from "react";
+import { useState } from "react";
 import css from "./App.module.css";
 import SearchBox from "../SearchBox/SearchBox.tsx";
 import Error from "../Error/Error.tsx";
@@ -11,6 +12,8 @@ import NoteForm from "../NoteForm/NoteForm.tsx";
 import type { Note, NoteCreate, NoteUpdate } from "../../types/note.ts";
 import { ModalVariant } from "../../enums";
 import toast from "react-hot-toast";
+import { useDeleteNote } from "../../hooks/useDeleteNote.ts";
+
 
 const TAG_OPTIONS = ['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'] as const;
 type TagType = typeof TAG_OPTIONS[number];
@@ -24,7 +27,8 @@ function App() {
     const [modalVariant, setModalVariant] = useState<ModalVariant>(ModalVariant.CREATE);
     const [tags] = useState<readonly TagType[]>(TAG_OPTIONS);
 
-    useEffect(() => {
+    // Дебаунс пошуку
+    React.useEffect(() => {
         const handler = setTimeout(() => {
             setQuery(searchInput);
             setPage(1);
@@ -33,8 +37,9 @@ function App() {
     }, [searchInput]);
 
     const { data, isLoading, error } = useNotes({ search: query, page });
+    const deleteNote = useDeleteNote();
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (!data) return;
         if (Array.isArray(data.notes) && data.notes.length === 0) {
             toast.error("There is no data");
@@ -64,6 +69,17 @@ function App() {
                 ? "Note created successfully"
                 : "Note updated successfully"
         );
+    };
+
+    const handleDelete = (id: number) => {
+        deleteNote.mutate(id, {
+            onSuccess: () => {
+                toast.success("Note deleted successfully");
+            },
+            onError: () => {
+                toast.error("Failed to delete note");
+            },
+        });
     };
 
     if (error) {
@@ -119,6 +135,7 @@ function App() {
                             setModalVariant(ModalVariant.UPDATE);
                         }}
                         setVariant={setModalVariant}
+                        onDelete={handleDelete} // передаємо сюди обробник
                     />
                 )
             )}

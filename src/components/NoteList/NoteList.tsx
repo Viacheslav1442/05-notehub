@@ -7,9 +7,10 @@ export interface NoteListProps {
     notes: Note[];
     setCurrentNote: (note: Note) => void;
     setVariant: (variant: ModalVariant) => void;
+    onDelete: (id: number) => void;
 }
 
-const NoteList = ({ notes = [], setCurrentNote, setVariant }: NoteListProps) => {
+const NoteList = ({ notes = [], setCurrentNote, setVariant, onDelete }: NoteListProps) => {
     if (notes.length === 0) {
         return <p>No notes found</p>;
     }
@@ -22,6 +23,7 @@ const NoteList = ({ notes = [], setCurrentNote, setVariant }: NoteListProps) => 
                     note={note}
                     setCurrentNote={setCurrentNote}
                     setVariant={setVariant}
+                    onDelete={onDelete} // передаємо вниз
                 />
             ))}
         </ul>

@@ -11,10 +11,9 @@ interface NoteFormProps {
     note?: (NoteCreate & { tag: TagType }) | null;
     onClose: () => void;
     onSubmit: (values: NoteCreate | NoteUpdate) => void;
-    tags: readonly TagType[];
 }
 
-const NoteForm = ({ variant, note, onClose, onSubmit, tags }: NoteFormProps) => {
+const NoteForm = ({ variant, note, onClose, onSubmit }: NoteFormProps) => {
     const formik = useFormik<NoteCreate | NoteUpdate>({
         initialValues: {
             title: note?.title || '',
@@ -67,7 +66,7 @@ const NoteForm = ({ variant, note, onClose, onSubmit, tags }: NoteFormProps) => 
                     onBlur={formik.handleBlur}
                     className={css.select}
                 >
-                    {tags.map((tag) => (
+                    {TAG_OPTIONS.map((tag) => (
                         <option key={tag} value={tag}>
                             {tag}
                         </option>

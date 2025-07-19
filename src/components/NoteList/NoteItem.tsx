@@ -1,19 +1,19 @@
 import css from "./NoteList.module.css";
 import type { Note } from "../../types/note.ts";
-import type { ModalVariant } from "../../enums";
-import { useDeleteNote } from "../../hooks/useDeleteNote.ts";
-import { type MouseEvent } from "react";
+import { ModalVariant } from "../../enums";
+import type { MouseEvent } from "react";
 
 export interface NoteItemProps {
     note: Note;
     setCurrentNote: (note: Note) => void;
     setVariant: (variant: ModalVariant) => void;
+    onDelete: (id: number) => void;
 }
 
-const NoteItem = ({ note, setCurrentNote }: NoteItemProps) => {
-    const deleteNote = useDeleteNote();
+const NoteItem = ({ note, setCurrentNote, setVariant, onDelete }: NoteItemProps) => {
     const handleClickCard = () => {
         setCurrentNote(note);
+        setVariant(ModalVariant.UPDATE);
     };
 
     return (
@@ -25,7 +25,7 @@ const NoteItem = ({ note, setCurrentNote }: NoteItemProps) => {
                 <button
                     onClick={(event: MouseEvent<HTMLButtonElement>) => {
                         event.stopPropagation();
-                        deleteNote.mutate(note.id);
+                        onDelete(note.id);
                     }}
                     className={css.button}
                 >

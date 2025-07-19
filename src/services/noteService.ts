@@ -3,7 +3,7 @@ import type { Note, NoteCreate, NoteUpdate } from '../types/note';
 
 const instance = axios.create({
     baseURL: 'https://notehub-public.goit.study/api/docs',
-    headers: { Authorization: `Bearer ${import.meta.env.VITE_API_TOKEN}` },
+    headers: { Authorization: `Bearer ${import.meta.env.VITE_NOTEHUB_TOKEN}` },
 });
 
 interface NoteHubResponse {

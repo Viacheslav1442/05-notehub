@@ -1,5 +1,4 @@
-import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import css from "./App.module.css";
 import SearchBox from "../SearchBox/SearchBox.tsx";
 import Error from "../Error/Error.tsx";
@@ -14,7 +13,6 @@ import { ModalVariant } from "../../enums";
 import toast from "react-hot-toast";
 import { useDeleteNote } from "../../hooks/useDeleteNote.ts";
 
-
 const TAG_OPTIONS = ['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'] as const;
 type TagType = typeof TAG_OPTIONS[number];
 
@@ -27,8 +25,7 @@ function App() {
     const [modalVariant, setModalVariant] = useState<ModalVariant>(ModalVariant.CREATE);
     const [tags] = useState<readonly TagType[]>(TAG_OPTIONS);
 
-    // Дебаунс пошуку
-    React.useEffect(() => {
+    useEffect(() => {
         const handler = setTimeout(() => {
             setQuery(searchInput);
             setPage(1);
@@ -39,7 +36,7 @@ function App() {
     const { data, isLoading, error } = useNotes({ search: query, page });
     const deleteNote = useDeleteNote();
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!data) return;
         if (Array.isArray(data.notes) && data.notes.length === 0) {
             toast.error("There is no data");
@@ -135,7 +132,7 @@ function App() {
                             setModalVariant(ModalVariant.UPDATE);
                         }}
                         setVariant={setModalVariant}
-                        onDelete={handleDelete} // передаємо сюди обробник
+                        onDelete={handleDelete}
                     />
                 )
             )}

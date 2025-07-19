@@ -3,27 +3,27 @@ import { useFormik, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import type { NoteCreate, NoteUpdate } from '../../types/note';
 
-const TAG_OPTIONS = ['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'] as const;
-type TagType = typeof TAG_OPTIONS[number];
+type TagType = 'Todo' | 'Work' | 'Personal' | 'Meeting' | 'Shopping';
 
 interface NoteFormProps {
     variant: 'CREATE' | 'UPDATE';
     note?: (NoteCreate & { tag: TagType }) | null;
     onClose: () => void;
     onSubmit: (values: NoteCreate | NoteUpdate) => void;
+    tags: readonly TagType[];
 }
 
-const NoteForm = ({ variant, note, onClose, onSubmit }: NoteFormProps) => {
+const NoteForm = ({ variant, note, onClose, onSubmit, tags }: NoteFormProps) => {
     const formik = useFormik<NoteCreate | NoteUpdate>({
         initialValues: {
             title: note?.title || '',
             content: note?.content || '',
-            tag: (note?.tag || 'Todo') as TagType,
+            tag: (note?.tag || tags[0]) as TagType,
         },
         validationSchema: Yup.object({
             title: Yup.string().required('Title is required'),
-            content: Yup.string(), // content необов’язковий
-            tag: Yup.mixed<TagType>().oneOf(TAG_OPTIONS).required('Tag is required'),
+            content: Yup.string(),
+            tag: Yup.mixed<TagType>().oneOf(tags).required('Tag is required'),
         }),
         onSubmit: (values) => {
             onSubmit(values);
@@ -66,7 +66,7 @@ const NoteForm = ({ variant, note, onClose, onSubmit }: NoteFormProps) => {
                     onBlur={formik.handleBlur}
                     className={css.select}
                 >
-                    {TAG_OPTIONS.map((tag) => (
+                    {tags.map((tag) => (
                         <option key={tag} value={tag}>
                             {tag}
                         </option>

@@ -9,7 +9,11 @@ export interface NoteListProps {
     setVariant: (variant: ModalVariant) => void;
 }
 
-const NoteList = ({ notes, setCurrentNote, setVariant }: NoteListProps) => {
+const NoteList = ({ notes = [], setCurrentNote, setVariant }: NoteListProps) => {
+    if (notes.length === 0) {
+        return <p>No notes found</p>;
+    }
+
     return (
         <ul className={`${css.list} container`}>
             {notes.map((note) => (

@@ -9,7 +9,7 @@ import Loader from "../Loader/Loader.tsx";
 import NoteModal from "../Modal/Modal.tsx";
 import NoteForm from "../NoteForm/NoteForm.tsx";
 import type { Note, NoteCreate, NoteUpdate } from "../../types/note.ts";
-import type { ModalVariant } from "../../enums";
+import { ModalVariant } from "../../enums";
 import toast from "react-hot-toast";
 
 const TAG_OPTIONS = ['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'] as const;
@@ -21,7 +21,7 @@ function App() {
     const [query, setQuery] = useState<string>("");
     const [currentNote, setCurrentNote] = useState<Note | null>(null);
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
-    const [modalVariant, setModalVariant] = useState<ModalVariant>("CREATE");
+    const [modalVariant, setModalVariant] = useState<ModalVariant>(ModalVariant.CREATE);
     const [tags] = useState<readonly TagType[]>(TAG_OPTIONS);
 
     useEffect(() => {
@@ -53,14 +53,14 @@ function App() {
     const onClickCreateBtn = () => {
         setCurrentNote(null);
         setIsOpenModal(true);
-        setModalVariant("CREATE");
+        setModalVariant(ModalVariant.CREATE);
     };
 
     const handleSubmit = (values: NoteCreate | NoteUpdate) => {
         console.log("Submitted values:", values);
         onClose();
         toast.success(
-            modalVariant === "CREATE"
+            modalVariant === ModalVariant.CREATE
                 ? "Note created successfully"
                 : "Note updated successfully"
         );
@@ -116,9 +116,9 @@ function App() {
                         setCurrentNote={(note: Note) => {
                             setCurrentNote(note);
                             setIsOpenModal(true);
-                            setModalVariant("UPDATE");
+                            setModalVariant(ModalVariant.UPDATE);
                         }}
-                        setVariant={setModalVariant} // Передаємо setModalVariant без змін
+                        setVariant={setModalVariant}
                     />
                 )
             )}

@@ -6,7 +6,7 @@ import Pagination from "../Pagination/Pagination.tsx";
 import { useNotes } from "../../hooks/useNotes.ts";
 import NoteList from "../NoteList/NoteList.tsx";
 import Loader from "../Loader/Loader.tsx";
-import NoteModal from "../Modal/Modal.tsx";
+import Modal from "../Modal/Modal.tsx";
 import NoteForm from "../NoteForm/NoteForm.tsx";
 import type { Note, NoteCreate, NoteUpdate } from "../../types/note.ts";
 import { ModalVariant } from "../../enums";
@@ -138,7 +138,7 @@ function App() {
             )}
 
             {isOpenModal && (
-                <NoteModal onClose={onClose}>
+                <Modal onClose={onClose}>
                     <NoteForm
                         variant={modalVariant}
                         onClose={onClose}
@@ -146,7 +146,7 @@ function App() {
                         tags={tags}
                         onSubmit={handleSubmit}
                     />
-                </NoteModal>
+                </Modal>
             )}
         </div>
     );

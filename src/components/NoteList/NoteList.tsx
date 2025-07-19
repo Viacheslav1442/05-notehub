@@ -1,33 +1,36 @@
-import css from "./NoteList.module.css";
-import type { Note } from "../../types/note.ts";
-import NoteItem from "./NoteItem.tsx";
-import type { ModalVariant } from "../../enums";
+import type { Note } from "../../types/note";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import css from '../NoteList/NoteList.module.css';
+import { deleteNote } from "../../services/noteService";
 
-export interface NoteListProps {
+
+interface NoteListProps {
     notes: Note[];
-    setCurrentNote: (note: Note) => void;
-    setVariant: (variant: ModalVariant) => void;
-    onDelete: (id: number) => void;
 }
 
-const NoteList = ({ notes = [], setCurrentNote, setVariant, onDelete }: NoteListProps) => {
-    if (notes.length === 0) {
-        return <p>No notes found</p>;
-    }
+export default function NoteList({ notes }: NoteListProps) {
+    const queryClient = useQueryClient();
+
+    const mutation = useMutation({
+        mutationFn: deleteNote,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notes'] }),
+    })
+
 
     return (
-        <ul className={`${css.list} container`}>
-            {notes.map((note) => (
-                <NoteItem
-                    key={note.id}
-                    note={note}
-                    setCurrentNote={setCurrentNote}
-                    setVariant={setVariant}
-                    onDelete={onDelete} // передаємо вниз
-                />
+        <ul className={css.list}>
+            {notes.map(note => (
+                <li key={note.id} className={css.listItem}>
+                    <h2 className={css.title}>{note.title}</h2>
+                    <p className={css.content}>{note.content}</p>
+                    <div className={css.footer}>
+                        <span className={css.tag}>{note.tag}</span>
+                        <button className={css.button} onClick={() => mutation.mutate(note.id)}>Delete</button>
+                    </div>
+                </li>
             ))}
         </ul>
-    );
+
+    )
 };
 
-export default NoteList;

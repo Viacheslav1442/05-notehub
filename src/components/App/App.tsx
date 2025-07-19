@@ -9,11 +9,9 @@ import Loader from "../Loader/Loader.tsx";
 import NoteModal from "../Modal/Modal.tsx";
 import NoteForm from "../NoteForm/NoteForm.tsx";
 import type { Note, NoteCreate, NoteUpdate } from "../../types/note.ts";
+import type { ModalVariant } from "../../enums";
 import toast from "react-hot-toast";
 
-type Variant = "CREATE" | "UPDATE";
-
-// Фіксований набір тегів (має співпадати з NoteForm і типами тегів)
 const TAG_OPTIONS = ['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'] as const;
 type TagType = typeof TAG_OPTIONS[number];
 
@@ -23,9 +21,7 @@ function App() {
     const [query, setQuery] = useState<string>("");
     const [currentNote, setCurrentNote] = useState<Note | null>(null);
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
-    const [modalVariant, setModalVariant] = useState<Variant>("CREATE");
-
-    // Використовуємо фіксований набір тегів
+    const [modalVariant, setModalVariant] = useState<ModalVariant>("CREATE");
     const [tags] = useState<readonly TagType[]>(TAG_OPTIONS);
 
     useEffect(() => {
@@ -33,7 +29,6 @@ function App() {
             setQuery(searchInput);
             setPage(1);
         }, 500);
-
         return () => clearTimeout(handler);
     }, [searchInput]);
 
@@ -41,7 +36,6 @@ function App() {
 
     useEffect(() => {
         if (!data) return;
-
         if (Array.isArray(data.notes) && data.notes.length === 0) {
             toast.error("There is no data");
         }
@@ -62,7 +56,8 @@ function App() {
         setModalVariant("CREATE");
     };
 
-    const handleSubmit = (_values: NoteCreate | NoteUpdate) => {
+    const handleSubmit = (values: NoteCreate | NoteUpdate) => {
+        console.log("Submitted values:", values);
         onClose();
         toast.success(
             modalVariant === "CREATE"
@@ -75,9 +70,9 @@ function App() {
         return (
             <div className={css.app}>
                 <div className={`${css.container} ${css.header_container}`}>
-                    <header className={`${css.toolbar}`}>
+                    <header className={css.toolbar}>
                         <SearchBox onSearch={onSearch} />
-                        {data && data.totalPages && (
+                        {data?.totalPages && (
                             <Pagination
                                 currentPage={page}
                                 onPageChange={setPage}
@@ -97,7 +92,7 @@ function App() {
     return (
         <div className={css.app}>
             <div className={`${css.container} ${css.header_container}`}>
-                <header className={`${css.toolbar}`}>
+                <header className={css.toolbar}>
                     <SearchBox onSearch={onSearch} />
                     {data?.totalPages && data.totalPages > 1 && (
                         <Pagination
@@ -111,6 +106,7 @@ function App() {
                     </button>
                 </header>
             </div>
+
             {isLoading ? (
                 <Loader />
             ) : (
@@ -122,10 +118,11 @@ function App() {
                             setIsOpenModal(true);
                             setModalVariant("UPDATE");
                         }}
-                        setVariant={setModalVariant}
+                        setVariant={setModalVariant} // Передаємо setModalVariant без змін
                     />
                 )
             )}
+
             {isOpenModal && (
                 <NoteModal onClose={onClose}>
                     <NoteForm

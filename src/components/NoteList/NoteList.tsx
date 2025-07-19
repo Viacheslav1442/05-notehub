@@ -14,10 +14,10 @@ const NoteList = ({ notes, setCurrentNote, setVariant }: NoteListProps) => {
         <ul className={`${css.list} container`}>
             {notes.map((note) => (
                 <NoteItem
-                    note={note}
                     key={note.id}
-                    setVariant={setVariant}
+                    note={note}
                     setCurrentNote={setCurrentNote}
+                    setVariant={setVariant}
                 />
             ))}
         </ul>

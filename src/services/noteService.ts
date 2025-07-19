@@ -6,10 +6,18 @@ const instance = axios.create({
     headers: { Authorization: `Bearer ${import.meta.env.VITE_API_TOKEN}` },
 });
 
-export const fetchNotes = (page: number, search: string): Promise<{ notes: Note[]; totalPages: number }> => {
+export const fetchNotes = (
+    page: number,
+    search: string
+): Promise<{ notes: Note[]; totalPages: number }> => {
     return instance
-        .get<{ notes: Note[]; totalPages: number }>('/notes', { params: { page, search } })
-        .then(res => res.data);
+        .get('/notes', { params: { page, search } })
+        .then(res => {
+            return {
+                notes: res.data.notes,
+                totalPages: res.data.totalPages,
+            };
+        });
 };
 
 export const createNote = (data: NoteCreate): Promise<Note> => {

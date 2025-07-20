@@ -1,21 +1,19 @@
 import axios from "axios";
-import type { Note, NoteTag } from "../types/note";
 import toast from "react-hot-toast";
-
-
+import type { Note, NoteCreate, NoteUpdate } from "../types/note";
 
 
 axios.defaults.baseURL = "https://notehub-public.goit.study/api";
+
 const myKey = import.meta.env.VITE_API_TOKEN;
 const myApiKey = `Bearer ${myKey}`;
 axios.defaults.headers.common['Authorization'] = myApiKey;
 
 if (!myKey) {
     toast('VITE_API_TOKEN is not defined');
-};
+}
 
-
-
+// Типи для відповіді fetchNotes
 export interface FetchNotesParams {
     page?: number;
     perPage?: number;
@@ -35,14 +33,16 @@ interface RawFetchNotesResponse {
 }
 
 
-
-
-export const fetchNotes = async ({ page = 1, perPage = 12, search }: FetchNotesParams): Promise<FetchNotesResponse> => {
+export const fetchNotes = async ({
+    page = 1,
+    perPage = 12,
+    search,
+}: FetchNotesParams): Promise<FetchNotesResponse> => {
     const response = await axios.get<RawFetchNotesResponse>('/notes', {
         params: {
             page,
             perPage,
-            ...(search !== '' && { search: search }),
+            ...(search !== '' && { search }),
         },
     });
 
@@ -57,17 +57,18 @@ export const fetchNotes = async ({ page = 1, perPage = 12, search }: FetchNotesP
 };
 
 
-export const createNote = async (note: {
-    title: string;
-    content: string;
-    tag: NoteTag;
-}): Promise<Note> => {
-    const response = await axios.post('/notes', note);
-
+export const createNote = async (note: NoteCreate): Promise<Note> => {
+    const response = await axios.post<Note>('/notes', note);
     return response.data;
 };
 
 export const deleteNote = async (id: number): Promise<Note> => {
-    const response = await axios.delete(`/notes/${id}`);
+    const response = await axios.delete<Note>(`/notes/${id}`);
+    return response.data;
+};
+
+
+export const updateNote = async (id: number, updates: NoteUpdate): Promise<Note> => {
+    const response = await axios.patch<Note>(`/notes/${id}`, updates);
     return response.data;
 };

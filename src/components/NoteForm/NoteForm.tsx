@@ -1,24 +1,26 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { createNote } from "../../services/noteService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import css from "../NoteForm/NoteForm.module.css"
+import { createNote } from "../../services/noteService";
+import css from "../NoteForm/NoteForm.module.css";
 import type { NoteTag } from "../../types/note";
 
-
 const validationSchema = Yup.object({
-    title: Yup.string().min(3).max(50).required(),
+    title: Yup.string().min(3).max(50).required("Title is required"),
     content: Yup.string().max(500),
-    tags: Yup.mixed().oneOf(['Todo', 'Work', 'Personal', 'Meeting', 'Shopping']).required(),
+    tag: Yup.mixed<NoteTag>()
+        .oneOf(['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'], 'Invalid tag')
+        .required("Tag is required"),
 });
 
 
-interface NoteFormProp {
+interface NoteFormProps {
     onClose: () => void;
 }
 
-export default function NoteForm({ onClose }: NoteFormProp) {
+export default function NoteForm({ onClose }: NoteFormProps) {
     const queryClient = useQueryClient();
+
     const mutation = useMutation({
         mutationFn: createNote,
         onSuccess: () => {
@@ -28,7 +30,8 @@ export default function NoteForm({ onClose }: NoteFormProp) {
     });
 
     return (
-        <Formik initialValues={{ title: '', content: '', tag: 'Todo' }}
+        <Formik
+            initialValues={{ title: "", content: "", tag: "Todo" }}
             validationSchema={validationSchema}
             onSubmit={(values) => mutation.mutate({ ...values, tag: values.tag as NoteTag })}
         >
@@ -66,10 +69,7 @@ export default function NoteForm({ onClose }: NoteFormProp) {
                     <button type="button" className={css.cancelButton} onClick={onClose}>
                         Cancel
                     </button>
-                    <button
-                        type="submit"
-                        className={css.submitButton}
-                    >
+                    <button type="submit" className={css.submitButton}>
                         Create note
                     </button>
                 </div>

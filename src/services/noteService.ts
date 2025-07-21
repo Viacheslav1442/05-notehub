@@ -2,36 +2,36 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import type { Note, NoteCreate, NoteUpdate } from "../types/note";
 
-
 axios.defaults.baseURL = "https://notehub-public.goit.study/api";
 
-const myKey = import.meta.env.VITE_API_TOKEN;
-const myApiKey = `Bearer ${myKey}`;
-axios.defaults.headers.common['Authorization'] = myApiKey;
+
+const myKey = import.meta.env.VITE_NOTEHUB_TOKEN;
 
 if (!myKey) {
-    toast('VITE_API_TOKEN is not defined');
+    toast.error("VITE_NOTEHUB_TOKEN is not defined");
+} else {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${myKey}`;
 }
 
-// Типи для відповіді fetchNotes
+// Запит параметри
 export interface FetchNotesParams {
     page?: number;
     perPage?: number;
     search?: string;
 }
 
+
 export interface FetchNotesResponse {
     page: number;
-    data: Note[];
-    total_pages: number;
     perPage: number;
+    data: Note[];
+    totalPages: number;
 }
 
 interface RawFetchNotesResponse {
     notes: Note[];
     totalPages: number;
 }
-
 
 export const fetchNotes = async ({
     page = 1,
@@ -42,20 +42,17 @@ export const fetchNotes = async ({
         params: {
             page,
             perPage,
-            ...(search !== '' && { search }),
+            ...(search ? { search } : {}),
         },
     });
-
-    const raw = response.data;
 
     return {
         page,
         perPage,
-        data: raw.notes,
-        total_pages: raw.totalPages,
+        data: response.data.notes,
+        totalPages: response.data.totalPages, // ✅ Назва поля з API
     };
 };
-
 
 export const createNote = async (note: NoteCreate): Promise<Note> => {
     const response = await axios.post<Note>('/notes', note);
@@ -66,7 +63,6 @@ export const deleteNote = async (id: number): Promise<Note> => {
     const response = await axios.delete<Note>(`/notes/${id}`);
     return response.data;
 };
-
 
 export const updateNote = async (id: number, updates: NoteUpdate): Promise<Note> => {
     const response = await axios.patch<Note>(`/notes/${id}`, updates);

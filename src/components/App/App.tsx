@@ -43,10 +43,10 @@ export default function App() {
                 {isLoading && <Loader />}
                 {isError && <ErrorMessage />}
 
-                {data && data.total_pages > 1 && (
+                {data && data.totalPages > 1 && (
                     <Pagination
                         currentPage={page}
-                        totalPages={data.total_pages}
+                        totalPages={data.totalPages}
                         onPageChange={setPage}
                     />
                 )}

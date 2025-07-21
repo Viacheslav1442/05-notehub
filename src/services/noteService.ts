@@ -13,7 +13,7 @@ if (!myKey) {
     axios.defaults.headers.common['Authorization'] = `Bearer ${myKey}`;
 }
 
-// Запит параметри
+
 export interface FetchNotesParams {
     page?: number;
     perPage?: number;
@@ -50,7 +50,7 @@ export const fetchNotes = async ({
         page,
         perPage,
         data: response.data.notes,
-        totalPages: response.data.totalPages, // ✅ Назва поля з API
+        totalPages: response.data.totalPages,
     };
 };
 
